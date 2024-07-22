@@ -1,0 +1,102 @@
+class Produto:
+    def __init__(self, id_produto, nome, preco, quantidade):
+        self.id_produto = id_produto
+        self.nome = nome
+        self.preco = preco
+        self.quantidade = quantidade
+
+    def atualizar_quantidade(self, quantidade):
+        self.quantidade += quantidade
+
+class Estoque:
+    def __init__(self):
+        self.produtos = {}
+
+    def adicionar_produto(self, produto):
+        if produto.id_produto in self.produtos:
+            self.produtos[produto.id_produto].atualizar_quantidade(produto.quantidade)
+        else:
+            self.produtos[produto.id_produto] = produto
+
+    def visualizar_estoque(self):
+        print("Estoque Atual:")
+        for produto in self.produtos.values():
+            print(f"ID: {produto.id_produto}, Nome: {produto.nome}, Preço: {produto.preco}, Quantidade: {produto.quantidade}")
+
+    def verificar_estoque(self, id_produto, quantidade):
+        if id_produto in self.produtos and self.produtos[id_produto].quantidade >= quantidade:
+            return True
+        return False
+
+    def atualizar_estoque(self, id_produto, quantidade):
+        if self.verificar_estoque(id_produto, quantidade):
+            self.produtos[id_produto].atualizar_quantidade(-quantidade)
+            return True
+        return False
+
+class Pedido:
+    def __init__(self, id_pedido, plataforma):
+        self.id_pedido = id_pedido
+        self.plataforma = plataforma
+        self.itens = []
+
+    def adicionar_item(self, produto, quantidade):
+        self.itens.append((produto, quantidade))
+
+    def visualizar_pedido(self):
+        print(f"Pedido ID: {self.id_pedido} via {self.plataforma}")
+        for item in self.itens:
+            produto, quantidade = item
+            print(f"Produto: {produto.nome}, Quantidade: {quantidade}, Preço Unitário: {produto.preco}, Total: {produto.preco * quantidade}")
+
+class SistemaLoja:
+    def __init__(self):
+        self.estoque = Estoque()
+        self.pedidos = []
+        self.id_pedido_atual = 1
+
+    def adicionar_produto_estoque(self, id_produto, nome, preco, quantidade):
+        produto = Produto(id_produto, nome, preco, quantidade)
+        self.estoque.adicionar_produto(produto)
+
+    def criar_pedido(self, plataforma):
+        pedido = Pedido(self.id_pedido_atual, plataforma)
+        self.id_pedido_atual += 1
+        self.pedidos.append(pedido)
+        return pedido
+
+    def registrar_pedido(self, pedido, id_produto, quantidade):
+        if self.estoque.verificar_estoque(id_produto, quantidade):
+            produto = self.estoque.produtos[id_produto]
+            pedido.adicionar_item(produto, quantidade)
+            self.estoque.atualizar_estoque(id_produto, quantidade)
+            return True
+        return False
+
+    def visualizar_estoque(self):
+        self.estoque.visualizar_estoque()
+
+    def visualizar_pedidos(self):
+        for pedido in self.pedidos:
+            pedido.visualizar_pedido()
+
+# Exemplo de uso
+sistema = SistemaLoja()
+
+# Adicionando produtos ao estoque
+sistema.adicionar_produto_estoque(1, "Camiseta", 50.0, 100)
+sistema.adicionar_produto_estoque(2, "Calça Jeans", 150.0, 50)
+
+# Criando um pedido via WhatsApp
+pedido1 = sistema.criar_pedido("WhatsApp")
+sistema.registrar_pedido(pedido1, 1, 2)  # 2 Camisetas
+
+# Criando um pedido via Instagram
+pedido2 = sistema.criar_pedido("Instagram")
+sistema.registrar_pedido(pedido2, 2, 1)  # 1 Calça Jeans
+
+# Visualizando o estoque atualizado
+sistema.visualizar_estoque()
+
+# Visualizando os pedidos realizados
+sistema.visualizar_pedidos()
